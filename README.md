@@ -166,16 +166,16 @@ emit<T extends object>(eventName: string, data?: T)
 #### Класс productData
 Класс отвечает за хранение и логику роботы с данными товара
 
-- checkPriceSalePossibility(price: number): bool - проверяет цену товара на возможность купить его.
+- `checkPriceSalePossibility(price: number): bool` - проверяет цену товара на возможность купить его.
 
 #### Класс productsListData
 
 Класс отвечает за хранение и логику работы с данными списка товаров
 
 Поля:
-- _products: IProduct[] - Массив объектов товаров
+- `_products: IProduct[]` - Массив объектов товаров
 
-- _preview: Pick<IProduct, '_id'> | null - Id товара выбранного для просмотра
+- `_preview: Pick<IProduct, '_id'> | null` - Id товара выбранного для просмотра
 
 Методы:
 ```
@@ -346,4 +346,4 @@ checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): 
 - `payment:validation` - событие, сообщающее о необходимости валидации формы оплаты
 - `contact:input` - изменение данных в форме контактных дыннх 
 - `contact:submit` - подтверждение в форме контактных дыннх 
-- `contact:validation` - событие, сообщающее о необходимости валидации формы контактных дыннх 
+- `contact:validation` - событие, сообщающее о необходимости валидации формы контактных данных 
