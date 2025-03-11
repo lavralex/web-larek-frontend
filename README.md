@@ -41,69 +41,6 @@ npm run build
 yarn build
 ```
 
-## Типы данных приложения
-
-Товар
-
-```
-interface IProduct {
-  _id: string;
-  title: string;
-  description: string;
-  category: string;
-  image: string;
-  price: number;
-}
-```
-
-Заказ
-
-```
-interface IOrder {
-  items: IProduct[];
-  payment: PaymentMethod;
-  email: string;
-  phone: string;
-  address: string;
-  total: number;
-  count: number;
-}
-```
-
-Интерфейс для коллекции товаров
-
-```
-interface IProductsListData {
-  products: IProduct[];
-  preview: Pick<IProduct, '_id'> | null;
-  addProduct(product: IProduct): void;
-  getProduct(productId: string): IProduct;
-}
-```
-
-Тип для корзины покупок
-
-```
-type TOrderCartInfo = Pick<IOrder, "items" | "total">
-```
-Тип для значка корзины 
-
-```
-type TCartInfo = Pick<IOrder, "count">
-```
-
-Тип для формы способа оплаты 
-
-```
-type TOrderPaymentInfo = Pick<IOrder, "payment" | "address">
-```
-
-Тип для формы контактных данных
-
-```
-type TOrderСontactsInfo = Pick<IOrder, "email" | "phone">
-```
-
 ## Архитектура приложения
 
 Код приложения реализован согласно парадигме MVP
@@ -113,36 +50,56 @@ type TOrderСontactsInfo = Pick<IOrder, "email" | "phone">
 
 ### Базовый код
 
+#### Класс Component<T>
+
+Базовый абстрактный класс для всех компонентов отображения
+
+Конструктор:
+`constructor(protected readonly container: HTMLElement)`
+
+Методы:
+- `toggleClass(element: HTMLElement, className: string, force?: boolean)` - Переключить класс
+- `setText(element: HTMLElement, value: unknown)` - преобразует value в текст и устанавливает его в element
+- `setDisabled(element: HTMLElement, state: boolean)` - Сменить статус блокировки element в зависимости от state
+- `render(data?: Partial<T>): HTMLElement` - возвращает HTML-элемент
+- `setHidden(element: HTMLElement)` - скрывает element
+- `setVisible(element: HTMLElement)` - показвает element
+- `setImage(element: HTMLImageElement, src: string, alt?: string)` - Установить изображение src с алтернативным текстом alt в элемент element
+
 #### Класс Api
 
 Реализует логику отправки запросов серверу. В конструктор предается адресс сервера и опциональный объект заголовков запроса
 
+Конструктор:
+`constructor(baseUrl: string, options: RequestInit = {})`
+принимает базовый url baseUrl и объект заголовков 
+
 Методы:
-```
-get(uri: string): Promise<object>
-```
-Принимает параметр:
-uri - эндпоинт
 
-Возвращает: промис с объектом ответа
+`get(uri: string): Promise<object>` - отправляет GET запрос к серверу
 
-```
-post(
-  uri: string,
-  data: object,
-  method: ApiPostMethods = 'POST'
-): Promise<object>
-```
-Принимает параметры:
-uri - эндпоинт
-data - Объект, который будет преобразован в JSON и отправлен в теле запроса
-method - HTTP-метод для запроса. Допустимые значения: 'POST', 'PUT', 'DELETE'.  По умолчанию 'POST'.
+Принимает параметр uri - эндпоинт
 
-Возвращает: промис с объектом ответа
+Возвращает промис с объектом ответа
+
+`post( uri: string, data: object, method: ApiPostMethods = 'POST' ): Promise<object>`
+
+
+совершает запрос метода method, по умолчанию POST на эндпоинт uri, отправляя в теле зпроса data. Возвращает: промис с объектом ответа
+
+`protected handleResponse(response: Response): Promise<object>` - Обрабатывает ответ от сервера.
+Принимает ответ сервера и возвращает промис с ответом в json
 
 #### Класс EventEmitter
+Брокер событий, классическая реализация
+Позволяет отправлять события и подписываться на события
 
-Брокер событий позволяет отправлять события и подписываться на события
+Конструктор:
+```
+constructor() {
+        this._events = new Map<EventName, Set<Subscriber>>();
+}
+```
 
 Методы:
 
@@ -161,12 +118,14 @@ emit<T extends object>(eventName: string, data?: T)
 ```
 Публикует событие с именем eventName, передавая данные data всем подписанным обработчикам
 
+`onAll(callback: (event: EmitterEvent) => void)` - Слушать все события
+
+`offAll()` - Сбросить все обработчики
+
+`trigger<T extends object>(eventName: string, context?: Partial<T>)` - Сделать коллбек триггер, генерирующий событие при вызове
+
+
 ### Слой данных
-
-#### Класс productData
-Класс отвечает за хранение и логику роботы с данными товара
-
-- `checkPriceSalePossibility(price: number): bool` - проверяет цену товара на возможность купить его.
 
 #### Класс productsListData
 
@@ -175,18 +134,12 @@ emit<T extends object>(eventName: string, data?: T)
 Поля:
 - `_products: IProduct[]` - Массив объектов товаров
 
-- `_preview: Pick<IProduct, '_id'> | null` - Id товара выбранного для просмотра
+- `_preview: TProductId | null` - Id товара выбранного для просмотра
 
 Методы:
-```
-addProduct(product: IProduct): void;
-```
-добавляет один товар
-
-```
-getProduct(productId: Pick<IProduct, '_id'>): IProduct;
-```
-возвращает товар по id
+- `setProducts(products: IProduct[]): void;` - Добавляет товары в массив
+- `getProducts(): IProduct[];` - массив товаров
+- `setPreview(productId: TProductId): void;` - по id устанавливает товар в preview
 
 #### Класс orderData
 
@@ -198,65 +151,49 @@ getProduct(productId: Pick<IProduct, '_id'>): IProduct;
 - `email: string` - почта
 - `phone: string` - телефон
 - `address: string `- адресс
-- `total: number` - итоговая цена
-- `count: number` - поличество товаров
+- `formErrors: Partial<Record<keyof OrderForm, string>>` - ошибки
 - `events: IEvents` - экземпляр класса `EventEmitter` для инициации событий при изменении данных 
 
 Методы:
 
-```
-addProduct(product: IProduct): void;
-```
-добавляет один товар
 
-```
-deleteProduct(productId: string): void;
-```
-удаляет один товар по id
-
-```
-setPaymentInfo(paymentInfo: TOrderPaymentInfo): void;
-```
-сохраняет данные оплаты
-
-```
-checkPaymentInfoValidation(data: Record<keyof TOrderPaymentInfo, string>): boolean
-```
-проверяет валидность данных оплаты
-
-```
-setСontactstInfo(contactstInfo: TOrderСontactsInfo): void;
-```
-сохраняет контактные данные
-
-```
-checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): boolean
-```
-проверяет валидность контактных данных
-
-`checkProductNotInCart(cart: IProduct[], productId: Pick<IProduct, '_id'>): bool` - проверяет отсутствие товара в корзине
+- `addProduct(product: IProduct): void;` - добавляет один товар
+- `deleteProduct(productId: TProductId): void;` - удаляет один товар по id
+- `setPaymentInfo(paymentInfo: TOrderPaymentInfo): void;` - сохраняет данные оплаты
+- `checkPaymentInfoValidation(data: Record<keyof TOrderPaymentInfo, string>): boolean` - проверяет валидность данных оплаты
+- `setСontactstInfo(contactstInfo: TOrderСontactsInfo): void;` - сохраняет контактные данные
+- `checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): boolean` - проверяет валидность контактных данных
+- `checkProductInOrder(product: TProductId): boolean;` - проверяет отсутствие товара в корзине
+- `clearCart(): void;` - очищает корзину
+- `getTotal(): number;` - возвращает общую стоимость товаров в корзине
+- `getCount(): number;` - возвращает общее количество товаров в корзине
 
 ### Слой представления
 
 Классы представления отвечают за отображение передаваемых в них данных
 
+`interface IModalData {content: HTMLElement;}` - интерфейс данных модального окна
+
 #### Класс Modal
 
-реализует модальное окно
-- `constructor(selector: string, events: IEvents)` конструктор принимает selector селектор по которому в разметке страницы будет идентифицированно модальное окно, template шаблон который будет отображаться в модальном окне, modalData - данные для заполнения шаблона и events - экземпляр класса EventEmitter, для инициализации событий.
+Наследуется от Component, реализует модальное окно
+- `constructor(container: HTMLElement, events: IEvents)` конструктор принимает selector селектор по которому в разметке страницы будет идентифицированно модальное окно, template шаблон который будет отображаться в модальном окне, modalData - данные для заполнения шаблона и events - экземпляр класса EventEmitter, для инициализации событий.
 
 Поля:
-- `modal: HTMLElement` - элемент модального окна
+- `_content: HTMLElement;` - элемент контента
 - `events: IEvents `- брокер событий
-- `submitButton: HTMLButtonElement` - кнопка подтверждения
+- `_closeButton: HTMLButtonElement;` - кнопка подтверждения
 
 Методы:
 - `open(): void` - открывает модальное окно
 - `close(): void `- закрывает модальное окно
+- `set content(value: HTMLElement)` - устанавливает контент
+- `render(data: IModalData): HTMLElement` - возвращает HTML-элемент
 - `setValid(isValid: bool): void` - акивирует и отключает кнопку подверждения
 
 #### Класс ProductCard
-отвечает за отображение товара в списке товаров
+Наследуется от Component, отвечает за отображение товара в списке товаров
+- `constructor(container: HTMLElement, events: IEvents)`
 
 Поля:
 - `_id: string`
@@ -272,8 +209,10 @@ checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): 
 - `render(): HTMLElement` - возвращает карточку товара
 - геттер `id` - возвращает id карточки
 
-#### Класс ProductCardPreviewModal
+#### Класс ProductCardPreview
 Расширяет класс ProductCard. Отвечает за отображение подробной карточки товара
+
+- `constructor(container: HTMLElement, events: IEvents)`
 
 Методы:
 - `open(data: IProduct): void` - расширяет родительский метод принимая данные карточки товара
@@ -282,8 +221,24 @@ checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): 
 #### Класс ProductCardInCart
 Расширяет класс ProductCard. Отвечает за отображение карточки товара в корзине
 
+- `constructor(container: HTMLElement, events: IEvents)`
+
 Методы:
 - `delete(): void` - удаляет отображение карточки
+
+#### Класс  Basket
+Отвечает за отображение списка товаров в корзине
+
+- `constructor(container: HTMLElement, events: IEvents)`
+
+Свойства:
+- `protected _list: HTMLElement;` - список товаров
+- `protected _total: HTMLElement;` - итоговая цена
+- `protected _button: HTMLElement;` - кнопка подтверждения
+
+Методы:
+- `set items(items: HTMLElement[])` - добавляет товары в список
+- `set total(total: number)` - устанавливает итоговую цену 
 
 #### Класс productContainer
 Отвечает за отображения списка доступных товаров
@@ -291,25 +246,18 @@ checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): 
 Методы:
 - `addProducts(productElements: HTMLElement[]): void` - для добавления товаров
 
-#### Класс OrderCartModal
-Расширяет класс Modal. Отвечает за отображение корзины покупок
 
-Поля:
-- `items: IProduct[]`
-- `totalPrice: number`
+#### Класс Form
+Расширяет класс Component. Отвечает за отображение окна с формой
 
-Методы:
-- `addProduct(productElement: HTMLElement)` - для добавления товара в список покупок
-- `renderCart(IProduct[]): void` - отображает данные корзины покупок
-
-#### Класс ModalWithForm
-Расширяет класс Modal. Отвечает за отображение окна с формой
+- `constructor(container: HTMLElement, events: IEvents)`
 
 Поля:
 - `_form: HTMLButtonElement` - элемент формы
 - `formName: string` - значение атрибута name формы
 - `inputs: NodeListOf<HTMLInputElement>` - список полей формы
 - `errors: Record<string, HTMLElement>` - объект хронящий все элементы для вывода ошибок формы
+- `protected _button: HTMLElement;` - кнопка подтверждения
 
 Методы:
 - `get form: HTMLElement` - геттер для получения формы
@@ -324,6 +272,11 @@ checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): 
 #### Класс appApi
 
 Принимает в конструктор экземпляр класса Api и представляет методы взаимодейстия с бэкендом
+
+Методы:
+-`getProductsList(): Promise<IProduct[]>` - запрашивает у api список товаров
+-`postOrder(order: IAppData): Promise<ISuccessOrder>` - отправляет запрос по совершению заказа в api
+
 
 Список событий которые могут генерироваться в системе:
 
@@ -346,4 +299,90 @@ checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): 
 - `payment:validation` - событие, сообщающее о необходимости валидации формы оплаты
 - `contact:input` - изменение данных в форме контактных дыннх 
 - `contact:submit` - подтверждение в форме контактных дыннх 
-- `contact:validation` - событие, сообщающее о необходимости валидации формы контактных данных 
+- `contact:validation` - событие, сообщающее о необходимости валидации формы контактных данных
+
+## Типы данных приложения
+
+Товар
+
+```
+interface IProduct {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  image: string;
+  price: number | null;
+}
+```
+
+Заказ
+
+```
+interface IAppData {
+  items: string[];
+  payment: PaymentMethod;
+  email: string;
+  phone: string;
+  address: string;
+  total: number;
+}
+```
+
+- `type TProductId = Pick<IProduct, 'id'>;` - id товара
+
+Интерфейс для коллекции товаров
+
+```
+interface IProductsListData {
+  products: IProduct[];
+  preview: TProductId | null;
+  addProduct(product: IProduct): void;
+  getProduct(productId: TProductId): IProduct;
+  setPreview(productId: TProductId): void;
+}
+```
+
+интерфейс ответа сервера при успешном заказе
+
+```
+interface SuccessOrder {
+  id: string;
+  total: number
+}
+```
+
+интерфейс класса формирующего заказ
+
+```
+export interface IOrderData {
+  items: IProduct[];
+  payment: PaymentMethod;
+  email: string;
+  phone: string;
+  address: string;
+  formErrors: Partial<Record<keyof OrderForm, string>>;
+  addProduct(product: IProduct): void;
+  deleteProduct(product: TProductId): void;
+  setPaymentInfo(paymentInfo: TOrderPaymentInfo): void;
+  checkPaymentInfoValidation(data: TOrderPaymentInfo): boolean;
+  setСontactstInfo(contactstInfo: TOrderСontactsInfo): void;
+  checkСontactstInfoValidation(data: TOrderСontactsInfo): boolean;
+  checkProductInOrder(product: TProductId): boolean;
+  clearCart(): void;
+  getTotal(): number;
+  getCount(): number;
+}
+```
+
+Тип для корзины покупок
+
+`type TOrderCartInfo = Pick<IAppData, "items" | "total">`
+
+Тип для формы способа оплаты 
+
+`type TOrderPaymentInfo = Pick<IAppData, "payment" | "address">`
+
+Тип для формы контактных данных
+
+`type TOrderСontactsInfo = Pick<IAppData, "email" | "phone">`

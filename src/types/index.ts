@@ -1,33 +1,42 @@
 export interface IProduct {
-  _id: string;
+  id: string;
   title: string;
   description: string;
   category: string;
   image: string;
-  price: number;
+  price: number | null;
 }
 
 enum PaymentMethod {
   Online = "online",
-  UponReceipt = "upon receipt"
+  Сard = "card"
 }
 
-export interface IOrder {
-  items: IProduct[];
+export interface IAppData {
+  items: string[];
   payment: PaymentMethod;
   email: string;
   phone: string;
   address: string;
   total: number;
-  count: number;
 }
+
+type TProductId = Pick<IProduct, 'id'>;
 
 export interface IProductsListData {
   products: IProduct[];
-  preview: Pick<IProduct, '_id'> | null;
-  addProduct(product: IProduct): void;
-  getProduct(productId: Pick<IProduct, '_id'>): IProduct;
+  preview: TProductId | null;
+  setProducts(products: IProduct[]): void;
+  getProducts(): IProduct[];
+  setPreview(productId: TProductId): void;
 }
+
+export interface ISuccessOrder {
+  id: string;
+  total: number
+}
+
+type OrderForm = Omit<IAppData, 'total' | 'items'>;
 
 export interface IOrderData {
   items: IProduct[];
@@ -35,20 +44,25 @@ export interface IOrderData {
   email: string;
   phone: string;
   address: string;
-  total: number;
-  count: number;
+  formErrors: Partial<Record<keyof OrderForm, string>>;
   addProduct(product: IProduct): void;
-  deleteProduct(productId: string): void;
+  deleteProduct(product: TProductId): void;
   setPaymentInfo(paymentInfo: TOrderPaymentInfo): void;
-  checkPaymentInfoValidation(data: Record<keyof TOrderPaymentInfo, string>): boolean
+  checkPaymentInfoValidation(data: TOrderPaymentInfo): boolean;
   setСontactstInfo(contactstInfo: TOrderСontactsInfo): void;
-  checkСontactstInfoValidation(data: Record<keyof TOrderСontactsInfo, string>): boolean
+  checkСontactstInfoValidation(data: TOrderСontactsInfo): boolean;
+  checkProductInOrder(product: TProductId): boolean;
+  clearCart(): void;
+  getTotal(): number;
+  getCount(): number;
 } 
 
-export type TOrderCartInfo = Pick<IOrder, "items" | "total">
+export type TOrderCartInfo = Pick<IAppData, "items" | "total">
 
-export type TCartInfo = Pick<IOrder, "count">
+export type TOrderPaymentInfo = Pick<IAppData, "payment" | "address">
 
-export type TOrderPaymentInfo = Pick<IOrder, "payment" | "address">
+export type TOrderСontactsInfo = Pick<IAppData, "email" | "phone">
 
-export type TOrderСontactsInfo = Pick<IOrder, "email" | "phone">
+export interface IModalData {
+  content: HTMLElement;
+}
