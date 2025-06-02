@@ -8,7 +8,7 @@ export class Product implements IProduct {
 	image: string;
 	category: string;
 	price: number | null;
-	inBasket: boolean = false;
+	inBasket = false;
 
 	constructor(public data: IProduct, private events: IEvents) {
 		Object.assign(this, data);

@@ -8,11 +8,9 @@ import {
 	IProduct,
 	IOrderData,
 	ISuccessOrder,
-	TProductId,
 	TOrderPaymentInfo,
 	TOrderСontactsInfo,
 	IOrderForm,
-	IRequestOrderData,
 } from './types';
 import { Api } from './components/base/api';
 import { cloneTemplate, ensureElement } from './utils/utils';

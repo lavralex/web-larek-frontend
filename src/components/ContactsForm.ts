@@ -3,8 +3,8 @@ import { Form } from './common/Form';
 import { TOrderСontactsInfo } from '../types';
 
 export class Contacts extends Form<TOrderСontactsInfo> {
-	protected _emailCache: string = '';
-	protected _phoneCache: string = '';
+	protected _emailCache = '';
+	protected _phoneCache = '';
 
 	constructor(container: HTMLFormElement, events: IEvents) {
 		super(container, events);
