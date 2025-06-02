@@ -1,68 +1,82 @@
 export interface IProduct {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  image: string;
-  price: number | null;
+	id: TProductId;
+	title: string;
+	description: string;
+	category: string;
+	image: string;
+	price: number | null;
+	inBasket: boolean;
 }
 
-enum PaymentMethod {
-  Online = "online",
-  Сard = "card"
+export enum PaymentMethod {
+	Cash = 'cash',
+	Сard = 'online',
 }
 
-export interface IAppData {
-  items: string[];
-  payment: PaymentMethod;
-  email: string;
-  phone: string;
-  address: string;
-  total: number;
+export interface IOrderData {
+	items: IProduct[];
+	payment: string;
+	email: string;
+	phone: string;
+	address: string;
+}
+export interface IRequestOrderData {
+	items: TProductId[];
+	payment: string;
+	email: string;
+	phone: string;
+	address: string;
+	total: number;
 }
 
-type TProductId = Pick<IProduct, 'id'>;
+export type TProductId = Pick<IProduct, 'id'>;
 
 export interface IProductsListData {
-  products: IProduct[];
-  preview: TProductId | null;
-  setProducts(products: IProduct[]): void;
-  getProducts(): IProduct[];
-  setPreview(productId: TProductId): void;
+	set products(products: IProduct[]);
+	get products(): IProduct[];
+	removeFromBasket(): void;
 }
 
 export interface ISuccessOrder {
-  id: string;
-  total: number
+	id: string;
+	total: number;
 }
 
-type OrderForm = Omit<IAppData, 'total' | 'items'>;
+type OrderForm = Omit<IOrderData, 'items'>;
 
-export interface IOrderData {
-  items: IProduct[];
-  payment: PaymentMethod;
-  email: string;
-  phone: string;
-  address: string;
-  formErrors: Partial<Record<keyof OrderForm, string>>;
-  addProduct(product: IProduct): void;
-  deleteProduct(product: TProductId): void;
-  setPaymentInfo(paymentInfo: TOrderPaymentInfo): void;
-  checkPaymentInfoValidation(data: TOrderPaymentInfo): boolean;
-  setСontactstInfo(contactstInfo: TOrderСontactsInfo): void;
-  checkСontactstInfoValidation(data: TOrderСontactsInfo): boolean;
-  checkProductInOrder(product: TProductId): boolean;
-  clearCart(): void;
-  getTotal(): number;
-  getCount(): number;
-} 
+export interface IAppData {
+	formErrors: Partial<Record<keyof OrderForm, string>>;
+	addProduct(product: IProduct): void;
+	deleteProduct(product: TProductId): void;
+	checkProductInOrder(productId: TProductId): boolean;
+	clearBasket(): void;
+	getTotal(): number;
+	getCount(): number;
+	get order(): IOrderData;
+}
 
-export type TOrderCartInfo = Pick<IAppData, "items" | "total">
+export type TOrderCartInfo = Pick<IOrderData, 'items'>;
 
-export type TOrderPaymentInfo = Pick<IAppData, "payment" | "address">
+export type TOrderPaymentInfo = Pick<IOrderData, 'payment' | 'address'>;
 
-export type TOrderСontactsInfo = Pick<IAppData, "email" | "phone">
+export type TOrderСontactsInfo = Pick<IOrderData, 'email' | 'phone'>;
 
 export interface IModalData {
-  content: HTMLElement;
+	content: HTMLElement;
 }
+
+export type ApiPostMethods = 'POST' | 'PUT';
+
+export interface IApi {
+	get<T>(url: string): Promise<T>;
+	post<T>(url: string, data: object, method?: ApiPostMethods): Promise<T>;
+}
+
+export interface IOrderForm {
+	payment: string;
+	address: string;
+	email: string;
+	phone: string;
+}
+
+export type TFormErrors = Partial<Record<keyof IOrderForm, string>>;
