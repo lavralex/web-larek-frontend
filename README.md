@@ -158,8 +158,7 @@ emit<T extends object>(eventName: string, data?: T)
 
 Методы:
 - `set products(products: IProduct[])` - Добавляет товары в массив
-- `get products(): IProduct[];` - массив товаров
-- `removeFromBasket()` - меняет статусы товаров inBasket, помечая что товар не в корзине 
+- `get products(): IProduct[];` - массив товаров 
 
 #### Класс AppData
 
@@ -168,7 +167,8 @@ emit<T extends object>(eventName: string, data?: T)
 Поля:
 - `_order: IOrderData` - данные заказа
 - `formErrors: Partial<Record<keyof OrderForm, string>>` - ошибки
-- `events: IEvents` - экземпляр класса `EventEmitter` для инициации событий при изменении данных 
+- `events: IEvents` - экземпляр класса `EventEmitter` для инициации событий при изменении данных
+- `productModel: IProductListData` - модель списка продуктов
 
 Методы:
 
@@ -204,6 +204,7 @@ emit<T extends object>(eventName: string, data?: T)
 - `_content: HTMLElement;` - элемент контента
 - `events: IEvents `- брокер событий
 - `_closeButton: HTMLButtonElement;` - кнопка подтверждения
+- `private isOpened: boolean;` - статус модального окна, изначально false
 
 Методы:
 - `open(): void` - открывает модальное окно
@@ -250,6 +251,7 @@ emit<T extends object>(eventName: string, data?: T)
 
 Методы:
 - `set index(value: number)` - устанавливает индекс товара
+- set price(value: number) - устанавливает цену товара
 - render(data: Partial<IProductBasket>): HTMLElement - переоределяет родительский метод добавляя отображение индексов
 
 #### Класс  Basket
@@ -309,6 +311,35 @@ emit<T extends object>(eventName: string, data?: T)
 - `setError(data: {field: string, value: string, ValidInfo: string}): void` - принимает объект с элементами для вывода ошибок
 - `showError(field: string, errorMessage: string): void` - отображает текст ошибки
 - `hideError(field: string): void` - скрывает текст ошибки
+- `clearForm(): void` - очищает формы
+
+### Класс Payment
+Расширяет класс Form. Отвечает за отображение окна с формой оплаты
+
+Конструктор:
+`constructor(container: HTMLFormElement, events: IEvents)`
+- container - элемент формы
+- events - обработчик событий
+
+Методы:
+- `deactivateButtons(): void` - деактивирует кнопки выбора оплаты
+- `clearForm(): void ` - переопределяет родительский метод, очищает форму и деактивирует кнопки выбора оплаты 
+
+
+### Класс Contacts
+Расширяет класс Form. Отвечает за отображение окна с формой контактов
+
+Конструктор:
+`constructor(container: HTMLFormElement, events: IEvents)`
+- container - элемент формы
+- events - обработчик событий
+
+Методы:
+`protected onInputChange(field: keyof TOrderСontactsInfo, value: string)` - переопределяет родительский метод, запускает событие orderInput:change
+
+- field - поле формы
+- value - значение поля
+
 
 ### Слой коммуникации
 
@@ -378,7 +409,6 @@ interface IOrderData {
 interface IProductsListData {
   set products(products: IProduct[])
   get products(): Product[]
-  removeFromBasket(): void
 }
 ```
 

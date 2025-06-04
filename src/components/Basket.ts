@@ -33,32 +33,33 @@ export class Basket extends Component<IBasket> {
 	set items(items: HTMLElement[]) {
 		this._items.replaceChildren(...items);
 		if (!items.length) {
-			this._button.disabled = true;
+			this.setDisabled(this._button, true);
 		} else {
-			this._button.disabled = false;
+			this.setDisabled(this._button, false);
 		}
 	}
 
 	set price(price: number) {
-		this._price.textContent = formatNumber(price) + ' синапсов';
+		this.setText(this._price, formatNumber(price) + ' синапсов');
 	}
 
 	setIndexes() {
-		Array.from(this._items.children).forEach(
-			(item, index) =>
-				(item.querySelector(`.basket__item-index`).textContent = (
-					index + 1
-				).toString())
-		);
+		Array.from(this._items.children).forEach((item, index) => {
+			const itemElement = item.querySelector(
+				`.basket__item-index`
+			) as HTMLElement;
+			const itemIndex = (index + 1).toString();
+			this.setText(itemElement, itemIndex);
+		});
 	}
 
 	disableButton() {
-		this._button.disabled = true;
+		this.setDisabled(this._button, true);
 	}
 
 	clearBasket(): void {
-		this._items.remove();
-		this._price.textContent = '0 синапсов';
-		this._button.disabled = true;
+		this._items.replaceChildren();
+		this.setText(this._price, '0 синапсов');
+		this.disableButton();
 	}
 }

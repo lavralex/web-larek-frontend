@@ -1,12 +1,11 @@
 import './scss/styles.scss';
 import { EventEmitter } from './components/base/events';
-import { ProductsListData, Product } from './components/ProductsData';
+import { ProductsListData } from './components/ProductsData';
 import { AppData } from './components/AppData';
 import { AppApi } from './components/AppApi';
 import {
 	IApi,
 	IProduct,
-	IOrderData,
 	ISuccessOrder,
 	TOrderPaymentInfo,
 	TOrderСontactsInfo,
@@ -38,17 +37,13 @@ const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const events = new EventEmitter();
 const page = new Page(document.body, events);
 const productsData = new ProductsListData(events);
-const appData = new AppData(events);
+const appData = new AppData(events, productsData);
 
 const baseApi: IApi = new Api(API_URL, settings);
 const api = new AppApi(baseApi);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 const basket = new Basket('basket', cloneTemplate(basketTemplate), events);
-const paymentForm = new Payment(
-	'order',
-	cloneTemplate(paymentTemplate),
-	events
-);
+const paymentForm = new Payment(cloneTemplate(paymentTemplate), events);
 const contactsForm = new Contacts(cloneTemplate(contactsTemplate), events);
 const success = new Success('order-success', cloneTemplate(successTemplate), {
 	onClick: () => {
@@ -81,7 +76,7 @@ events.on('products:change', () => {
 	});
 });
 
-events.on('product:select', (item: Product) => {
+events.on('product:select', (item: IProduct) => {
 	const product = new ProductCardPreview(cloneTemplate(cardPreviewTemplate), {
 		onClick: () => {
 			events.emit('product:inBasket', item);
@@ -105,7 +100,7 @@ events.on('modal:close', () => {
 	page.locked = false;
 });
 
-events.on('product:inBasket', (item: Product) => {
+events.on('product:inBasket', (item: IProduct) => {
 	appData.addProduct(item);
 	item.inBasket = true;
 	page.counter = appData.getCount();
@@ -136,7 +131,7 @@ events.on('basket:open', () => {
 	});
 });
 
-events.on('basketItem:delete', (item: Product) => {
+events.on('basketItem:delete', (item: IProduct) => {
 	appData.deleteProduct(item);
 	item.inBasket = false;
 	basket.price = appData.getTotal();
@@ -150,7 +145,6 @@ events.on('basketItem:delete', (item: Product) => {
 events.on('order:payment', () => {
 	modal.render({
 		content: paymentForm.render({
-			address: '',
 			valid: false,
 			errors: [],
 		}),
@@ -195,37 +189,23 @@ events.on(
 );
 
 events.on('order:submit', () => {
-	const currentData = {
-		valid: true,
-		errors: [] as string[],
-	};
-
 	modal.render({
-		content: contactsForm.render(currentData),
+		content: contactsForm.render({
+			valid: false,
+			errors: [],
+		}),
 	});
 });
 
 events.on('contacts:submit', () => {
-	if (!appData.order.email || !appData.order.phone || appData.order.address) {
-		const formFields = [
-			{ name: 'email', value: contactsForm.emailCache },
-			{ name: 'phone', value: contactsForm.phoneCache },
-		];
-		formFields.forEach((field) => {
-			if (!appData.order[field.name as keyof IOrderData]) {
-				appData.setField(field.name as keyof IOrderForm, field.value);
-			}
-		});
-	}
-
 	api
 		.postOrder(appData.getRequestOrderData())
 		.then((res) => {
 			appData.clearOrder();
 			page.counter = 0;
-			productsData.removeFromBasket();
 			basket.clearBasket();
-			paymentForm.deactivateButtons();
+			paymentForm.clearForm();
+			contactsForm.clearForm();
 			events.emit('order:success', res);
 		})
 		.catch((err) => {

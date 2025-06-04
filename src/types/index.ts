@@ -34,7 +34,6 @@ export type TProductId = Pick<IProduct, 'id'>;
 export interface IProductsListData {
 	set products(products: IProduct[]);
 	get products(): IProduct[];
-	removeFromBasket(): void;
 }
 
 export interface ISuccessOrder {
@@ -80,3 +79,10 @@ export interface IOrderForm {
 }
 
 export type TFormErrors = Partial<Record<keyof IOrderForm, string>>;
+
+export type CategoryKeys =
+	| 'софт-скил'
+	| 'хард-скил'
+	| 'другое'
+	| 'дополнительное'
+	| 'кнопка';

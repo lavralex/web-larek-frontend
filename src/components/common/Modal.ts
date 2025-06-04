@@ -6,6 +6,7 @@ import { IEvents } from '../base/events';
 export class Modal extends Component<IModalData> {
 	protected _closeButton: HTMLButtonElement;
 	protected _content: HTMLElement;
+	private isOpened = false;
 
 	constructor(container: HTMLElement, protected events: IEvents) {
 		super(container);
@@ -24,14 +25,20 @@ export class Modal extends Component<IModalData> {
 	}
 
 	open() {
-		this.container.classList.add('modal_active');
-		this.events.emit('modal:open');
+		if (!this.isOpened) {
+			this.toggleClass(this.container, 'modal_active', true);
+			this.isOpened = true;
+			this.events.emit('modal:open');
+		}
 	}
 
 	close() {
-		this.container.classList.remove('modal_active');
-		this.content = null;
-		this.events.emit('modal:close');
+		if (this.isOpened) {
+			this.toggleClass(this.container, 'modal_active', false);
+			this.isOpened = false;
+			this.content = null;
+			this.events.emit('modal:close');
+		}
 	}
 
 	render(data: IModalData): HTMLElement {

@@ -1,7 +1,7 @@
 import { IOrderData, TProductId, IAppData, IProduct } from '../types';
 import { IEvents } from './base/events';
 import { isEmail, isPhoneNumber } from '../utils/formUtils';
-import { TFormErrors, IOrderForm } from '../types';
+import { TFormErrors, IOrderForm, IProductsListData } from '../types';
 
 const emptyOrder: IOrderData = {
 	items: [],
@@ -21,10 +21,12 @@ const errorsText = {
 export class AppData implements IAppData {
 	protected _order: IOrderData = JSON.parse(JSON.stringify(emptyOrder));
 	protected events: IEvents;
+	protected productsModel: IProductsListData;
 	formErrors: TFormErrors = {};
 
-	constructor(events: IEvents) {
+	constructor(events: IEvents, productsModel: IProductsListData) {
 		this.events = events;
+		this.productsModel = productsModel;
 	}
 
 	checkProductInOrder(productId: TProductId) {
@@ -34,10 +36,12 @@ export class AppData implements IAppData {
 	addProduct(product: IProduct) {
 		if (!this.checkProductInOrder(product.id)) {
 			this._order.items.push(product);
+			product.inBasket = true;
 		}
 	}
 
 	deleteProduct(product: IProduct) {
+		product.inBasket = false;
 		this._order.items = this._order.items.filter(
 			(item) => item.id !== product.id
 		);
@@ -88,6 +92,9 @@ export class AppData implements IAppData {
 
 	clearBasket(): void {
 		this._order.items = [];
+		this.productsModel.products.forEach(
+			(product) => (product.inBasket = false)
+		);
 	}
 
 	getTotal(): number {
@@ -107,6 +114,9 @@ export class AppData implements IAppData {
 	}
 
 	clearOrder(): void {
+		this.productsModel.products.forEach(
+			(product) => (product.inBasket = false)
+		);
 		this._order = JSON.parse(JSON.stringify(emptyOrder));
 	}
 

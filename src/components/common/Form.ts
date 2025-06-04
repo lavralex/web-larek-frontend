@@ -41,7 +41,7 @@ export class Form<T> extends Component<IFormState> {
 	}
 
 	set valid(value: boolean) {
-		this._submit.disabled = !value;
+		this.setDisabled(this._submit, !value);
 	}
 
 	set errors(value: string) {
@@ -53,5 +53,12 @@ export class Form<T> extends Component<IFormState> {
 		super.render({ valid, errors });
 		Object.assign(this, inputs);
 		return this.container;
+	}
+
+	clearForm(): void {
+		const inputs = this.container.querySelectorAll<HTMLInputElement>('input');
+		inputs.forEach((input) => {
+			input.value = '';
+		});
 	}
 }

@@ -2,6 +2,9 @@ import { Component } from './base/Component';
 import { ensureElement } from '../utils/utils';
 import { IProduct, TProductId } from '../types';
 import { CDN_URL } from '../utils/constants';
+import { categoriesMap } from '../utils/constants';
+import { CategoryKeys } from '../types';
+import { formatNumber } from '../utils/utils';
 
 interface ICardActions {
 	onClick: (event: MouseEvent) => void;
@@ -51,28 +54,29 @@ export class ProductCard extends Component<IProduct> {
 		this.setImage(this._image, src, this._title.textContent);
 	}
 
-	set category(value: string) {
-		this._category.textContent = value;
+	set category(value: CategoryKeys) {
+		this.setText(this._category, value);
+		this._category.classList.add(categoriesMap[value]);
 	}
 
 	set title(value: string) {
-		this._title.textContent = value;
+		this.setText(this._title, value);
 	}
 
 	set price(value: number) {
 		if (typeof value == 'number') {
-			this._price.textContent = value + ' синапсов';
+			this.setText(this._price, formatNumber(value) + ' синапсов');
 		} else if (value === null) {
-			this._price.textContent = 'Бесценно';
+			this.setText(this._price, 'Бесценно');
 			if (this._button) {
-				this._button.disabled = true;
+				this.setDisabled(this._button, true);
 			}
 		}
 	}
 
 	set inBasket(value: boolean) {
 		if (!this._button.disabled) {
-			this._button.disabled = value;
+			this.setDisabled(this._button, value);
 		}
 	}
 }
@@ -119,7 +123,11 @@ export class ProductCardInBasket extends ProductCard {
 	}
 
 	set index(value: number) {
-		this._index.textContent = value.toString();
+		this.setText(this._index, value.toString());
+	}
+
+	set price(value: number) {
+		this.setText(this._price, formatNumber(value));
 	}
 
 	render(data: Partial<IProductBasket>): HTMLElement {
